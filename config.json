@@ -1,0 +1,7 @@
+{
+    "tgBotApiToken": "",
+    "tgBotDebug": false,
+    "pathToDataBase": "schema.db",
+    "registrationAccess": true,
+    "maxCountEventsPerUser": 20
+}
