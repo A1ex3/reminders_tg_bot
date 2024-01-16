@@ -45,32 +45,32 @@ func (tgBot *TelegramBot) Notifier() {
 				go func(event *models.ModelEvents) {
 					defer wg.Done()
 					msg := tgbotapi.NewMessage(event.UserId, fmt.Sprintf(
-						"Event name: %s\nNotification time: %s\nMinutes notice: %d",
+						"📝: %s\n⏰: %s\nMinutes before the event: %d",
 						event.EventName,
-						time.Unix(event.StartTime, 0).Format(time.RFC3339),
-						event.NotifyFor * 60,
+						time.Unix(event.StartTime, 0).Format("2006-01-02 15:04:05"),
+						event.NotifyFor/60,
 					))
 					tgBot.Bot.Send(msg)
 				}(j)
 			}
 		}()
-		
+
 		go func() {
 			for _, j := range alertsNowList {
 				wg.Add(1)
 				go func(event *models.ModelEvents) {
 					defer wg.Done()
 					msg := tgbotapi.NewMessage(event.UserId, fmt.Sprintf(
-						"Notification for.\nEvent name: %s\nNotification time: %s\nMinutes in advance: %d",
+						"%d minutes until this event\n📝: %s\n⏰: %s\n",
+						event.NotifyFor/60,
 						event.EventName,
-						time.Unix(event.StartTime, 0).Format(time.RFC3339),
-						event.NotifyFor,
+						time.Unix(event.StartTime, 0).Format("2006-01-02 15:04:05"),
 					))
 					tgBot.Bot.Send(msg)
 				}(j)
 			}
 		}()
-		
+
 		wg.Wait()
 	}
 }

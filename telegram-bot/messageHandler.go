@@ -50,7 +50,6 @@ func (tgBot *TelegramBot) MessageHandler() {
 					tgButtonInit := tgbutton.Init()
 					var tgButton tgbutton.ITgButton = &tgButtonInit
 					tgButton.Add(tgButton.Create("New event", "newEvent"))
-					tgButton.Add(tgButton.Create("Settings", "settingsEvent"))
 					buildInlineButtons := tgButton.Build()
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "MENU")
 					msg.ReplyMarkup = buildInlineButtons
@@ -167,12 +166,30 @@ func (tgBot *TelegramBot) MessageHandler() {
 							tgBot.Bot.Send(msg)
 							eventId = ""
 						} else {
-							msg := tgbotapi.NewMessage(
-								update.CallbackQuery.From.ID,
-								"event successfully deleted",
-							)
-							tgBot.Bot.Send(msg)
-							eventId = ""
+							modelEvent := models.ModelEvents{UserId: update.CallbackQuery.From.ID}
+							handler.ModelEvent = &modelEvent
+							tgButtonInit := tgbutton.Init()
+							var tgButton tgbutton.ITgButton = &tgButtonInit
+							list, errEvent := handler.GetEvents()
+							if errEvent != nil {
+							} else {
+								var sb strings.Builder
+								for _, j := range list {
+									sb.WriteString("EventId:")
+									sb.WriteString(strconv.FormatInt(j.Id, 10))
+									tgButton.Add(tgButton.Create(j.EventName, sb.String()))
+									sb.Reset()
+								}
+								buildInlineButtons := tgButton.Build()
+								msg := tgbotapi.NewEditMessageTextAndMarkup(
+									update.CallbackQuery.From.ID,
+									update.CallbackQuery.Message.MessageID,
+									"Events:",
+									buildInlineButtons,
+								)
+								tgBot.Bot.Send(msg)
+								eventId = ""
+							}
 						}
 					}
 				} else if strings.HasPrefix(update.CallbackQuery.Data, "EventId:") {
