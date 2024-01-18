@@ -30,7 +30,7 @@ func (tgBot *TelegramBot) MessageHandler() {
 	var state string = "" // A variable that is responsible for the state of the user's actions.
 
 	modelEvent := &models.ModelEventsWithConfig{
-		Config: tgBot.Config,
+		Config:      tgBot.Config,
 		ModelEvents: &models.ModelEvents{},
 	}
 
@@ -101,7 +101,21 @@ func (tgBot *TelegramBot) MessageHandler() {
 					modelEvent.ModelEvents.UserId = update.Message.From.ID
 					err := modelEvent.SetStartTime(update.Message.Text, int64(offset))
 					if err != nil {
-						msg := tgbotapi.NewMessage(update.Message.From.ID, err.Error())
+						msg := tgbotapi.NewMessage(
+							update.Message.From.ID,
+							fmt.Sprintf(
+								"⚠️%s\n\n📄List of supported formats:\n%s",
+								err.Error(),
+								func() string {
+									var sb strings.Builder
+									for _, j := range tgBot.Config.DateTimeFormats {
+										sb.WriteString(j)
+										sb.WriteString(";\n")
+									}
+									return sb.String()
+								}(),
+							),
+						)
 						tgBot.Bot.Send(msg)
 					} else {
 						handler.ModelEvent = modelEvent.ModelEvents
@@ -118,9 +132,15 @@ func (tgBot *TelegramBot) MessageHandler() {
 
 					//log.Println("InputNotifyForState:", modelEvent.ModelEvents)
 
-					handler.ModelEvent = modelEvent.ModelEvents 
+					handler.ModelEvent = modelEvent.ModelEvents
 					if err != nil {
-						msg := tgbotapi.NewMessage(update.Message.From.ID, err.Error())
+						msg := tgbotapi.NewMessage(
+							update.Message.From.ID,
+							fmt.Sprintf(
+								"⚠️%s\nAllowed formats:\ns - seconds;\nm - minutes;\nh - hours;\nd - days;\nh:m:s;\nExamples:\n2h - will notify 2 hours before the event;",
+								err.Error(),
+							),
+						)
 						tgBot.Bot.Send(msg)
 					} else {
 						createEventErr := handler.CreateEvent()
@@ -152,7 +172,7 @@ func (tgBot *TelegramBot) MessageHandler() {
 							msg := tgbotapi.NewMessage(update.Message.From.ID, err.Error())
 							tgBot.Bot.Send(msg)
 						} else {
-							handler.ModelEvent = modelEvent.ModelEvents 
+							handler.ModelEvent = modelEvent.ModelEvents
 							msg := tgbotapi.NewMessage(update.Message.From.ID, InputDateTimeState)
 							tgBot.Bot.Send(msg)
 
