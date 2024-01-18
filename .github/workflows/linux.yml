@@ -42,11 +42,11 @@ jobs:
           - name: Create directory
             run: |
               mkdir reminders_tg_bot_linux_x64
-              cp -r remindersTgBot.db reminders_tg_bot_linux_x64/
-              cp -r config.json reminders_tg_bot_linux_x64/
-              cp -r LICENSE reminders_tg_bot_linux_x64/
-              cp -r README.md reminders_tg_bot_linux_x64/
-              cp -r reminders_tg_bot reminders_tg_bot_linux_x64/
+              cp remindersTgBot.db reminders_tg_bot_linux_x64/
+              cp config.json reminders_tg_bot_linux_x64/
+              cp LICENSE reminders_tg_bot_linux_x64/
+              cp README.md reminders_tg_bot_linux_x64/
+              cp reminders_tg_bot reminders_tg_bot_linux_x64/
               tar -czvf reminders_tg_bot_linux_x64.tar.gz reminders_tg_bot_linux_x64
             working-directory: ${{ github.workspace }}
 

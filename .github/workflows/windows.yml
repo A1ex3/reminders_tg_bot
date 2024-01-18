@@ -1,0 +1,64 @@
+name: Windows.
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+    create_release:
+        name: Create_Release
+        runs-on: windows-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Go 1.21.x
+              uses: actions/setup-go@v4
+              with:
+                go-version: '1.21.x'
+
+            - name: Installing GNU make, sqlite3
+              run: |
+                choco install git
+                choco install make
+                choco install sqlite
+            
+            - name: PowerShell activation
+              run: powershell
+            
+            - name: Creating a database file.
+              run: make makedb
+
+            - name: Build App
+              run: make build
+
+            - name: Set up Git
+              run: |
+                git config user.name "A1ex3"
+                git config user.email "None@example.com"
+              env:
+                GITHUB_TOKEN: ${{ secrets.ACTIONS }}
+
+            - name: Create directory
+              run: |
+                mkdir reminders_tg_bot_windows_x64
+                cp remindersTgBot.db reminders_tg_bot_windows_x64/
+                cp config.json reminders_tg_bot_windows_x64/
+                cp LICENSE reminders_tg_bot_windows_x64/
+                cp README.md reminders_tg_bot_windows_x64/
+                cp reminders_tg_bot.exe reminders_tg_bot_windows_x64/
+                Compress-Archive -Path "reminders_tg_bot_windows_x64/" -DestinationPath reminders_tg_bot_windows_x64.zip -CompressionLevel Optimal
+              working-directory: ${{ github.workspace }}
+            
+            - name: Create GitHub Release
+              id: create_release
+              uses: softprops/action-gh-release@v1
+              with:
+                files: reminders_tg_bot_windows_x64.zip
+                tag_name: latest
+              env:
+                GITHUB_TOKEN: ${{ secrets.ACTIONS }}
