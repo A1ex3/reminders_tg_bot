@@ -22,7 +22,9 @@ jobs:
                 go-version: '1.21.x'
             
           - name: Installing sqlite3
-            run: apt-get install sqlite3 
+            run: | 
+              sudo apt-get update
+              sudo apt-get install --yes sqlite3 
 
           - name: Build App
             run: make build
