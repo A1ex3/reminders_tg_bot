@@ -43,7 +43,7 @@ Example:
 
 Returns unix time(int64)
 */
-func (mewc *ModelEventsWithConfig) parseUnixTime(dateTimeStr string, offset int64) (int64, error) {
+func (mewc *ModelEventsWithConfig) ParseUnixTime(dateTimeStr string, offset int64) (int64, error) {
 	formats := mewc.Config.DateTimeFormats
 
 	var t time.Time
@@ -74,7 +74,7 @@ Example:
 	var input string = "1h"
 	result, err := parseSeconds(input) // result contains 3600 seconds
 */
-func (*ModelEventsWithConfig) parseSeconds(input string) (int, error) {
+func (*ModelEventsWithConfig) ParseSeconds(input string) (int, error) {
 	var seconds int
 
 	var inputLowerCase string = strings.ToLower(input)
@@ -124,7 +124,7 @@ func (mewc *ModelEventsWithConfig) SetEventName(value string) error {
 }
 
 func (mewc *ModelEventsWithConfig) SetStartTime(startTime string, offset int64) error {
-	timeParse, timeParseError := mewc.parseUnixTime(startTime, offset)
+	timeParse, timeParseError := mewc.ParseUnixTime(startTime, offset)
 
 	if timeParseError != nil {
 		return timeParseError
@@ -134,7 +134,7 @@ func (mewc *ModelEventsWithConfig) SetStartTime(startTime string, offset int64) 
 }
 
 func (mewc *ModelEventsWithConfig) SetNotifyFor(startTime int64, notifyFor string) error {
-	notifyForParse, notifyForParseError := mewc.parseSeconds(notifyFor)
+	notifyForParse, notifyForParseError := mewc.ParseSeconds(notifyFor)
 
 	if notifyForParseError != nil {
 		return notifyForParseError

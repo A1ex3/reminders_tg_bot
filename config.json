@@ -14,7 +14,7 @@
 		"2006.01.02 15:04:05",
 		"2006.01.02 15:04"
     ],
-    "pathToDataBase": "schema.db",
+    "pathToDataBase": "remindersTgBot.db",
     "registrationAccess": true,
     "maxCountEventsPerUser": 10
 }
