@@ -1,8 +1,8 @@
 package telegrambot
 
 import (
-	config "reminders_tg_got/config"
-	"reminders_tg_got/database"
+	config "reminders_tg_bot/config"
+	"reminders_tg_bot/database"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )

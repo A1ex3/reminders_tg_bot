@@ -1,7 +1,7 @@
 package main
 
 import (
-	tgbot "reminders_tg_got/telegram-bot"
+	tgbot "reminders_tg_bot/telegram-bot"
 	"time"
 )
 

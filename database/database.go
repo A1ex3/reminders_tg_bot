@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
-	config "reminders_tg_got/config"
+	config "reminders_tg_bot/config"
 )
 
 type Repository struct {

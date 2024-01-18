@@ -1,4 +1,4 @@
-module reminders_tg_got
+module reminders_tg_bot
 
 go 1.21.4
 

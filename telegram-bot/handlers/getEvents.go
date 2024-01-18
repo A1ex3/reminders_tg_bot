@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"log"
-	"reminders_tg_got/models"
+	"reminders_tg_bot/models"
 )
 
 func (handler *Handler) GetEvents() ([]models.ModelEvents, error) {

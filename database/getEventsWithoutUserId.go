@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
-	"reminders_tg_got/models"
+	"reminders_tg_bot/models"
 )
 
 func (repo *Repository) GetEventsWithoutUserId() ([]models.ModelEvents, error) {

@@ -3,8 +3,8 @@ package telegrambot
 import (
 	"fmt"
 	"log"
-	"reminders_tg_got/models"
-	"reminders_tg_got/telegram-bot/handlers"
+	"reminders_tg_bot/models"
+	"reminders_tg_bot/telegram-bot/handlers"
 	"sync"
 	"time"
 

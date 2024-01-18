@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"reminders_tg_got/config"
-	"reminders_tg_got/database"
-	"reminders_tg_got/models"
+	"reminders_tg_bot/config"
+	"reminders_tg_bot/database"
+	"reminders_tg_bot/models"
 )
 
 type Handler struct {
