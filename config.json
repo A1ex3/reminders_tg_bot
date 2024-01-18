@@ -1,7 +1,20 @@
 {
     "tgBotApiToken": "",
     "tgBotDebug": false,
+    "dateTimeFormats": [
+		"02.01.2006 15:04:05",
+		"02.01.2006 15:04",
+		"02-01-2006 15:04:05",
+		"02-01-2006 15:04",
+		"2006-01-02T15:04:05Z07:00",
+		"Mon Jan 2 15:04:05 -0700 MST 2006",
+		"02 Jan 2006, 15:04:05",
+		"02 Jan 2006, 15:04",
+		"2006-01-02 15:04:05",
+		"2006.01.02 15:04:05",
+		"2006.01.02 15:04"
+    ],
     "pathToDataBase": "schema.db",
     "registrationAccess": true,
-    "maxCountEventsPerUser": 20
+    "maxCountEventsPerUser": 10
 }

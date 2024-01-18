@@ -3,10 +3,16 @@ package models
 import (
 	"errors"
 	"fmt"
+	"log"
+	"reminders_tg_got/config"
 	errorscustom "reminders_tg_got/errorsCustom"
 	"strconv"
 	"strings"
 	"time"
+)
+
+const (
+	eventNameLength int = 128
 )
 
 type ModelEvents struct {
@@ -17,16 +23,28 @@ type ModelEvents struct {
 	EventName string
 }
 
-func (*ModelEvents) parseAndPrintUnixTime(dateTimeStr string, offset int64) (int64, error) {
-	formats := []string{
-		"02.01.2006 15:04:05",
-		"02-01-2006 15:04:05",
-		"2006-01-02T15:04:05Z07:00",
-		"Mon Jan 2 15:04:05 -0700 MST 2006",
-		"02 Jan 2006, 15:04:05",
-		"2006-01-02 15:04:05",
-		"2006.01.02 15:04:05",
-	}
+type ModelEventsWithConfig struct {
+	ModelEvents *ModelEvents
+	Config      *config.Config
+}
+
+/*
+Gets from the dateTimeStr(sender's local time) parameter a value that contains the date time,
+
+all templates for formatting are stored in the file, config.json dateTimeFormats(array),
+
+offset is the time zone offset from GMT transfer need seconds.
+
+Example:
+
+	var dateTime string = "2024.01.01 12:00:01"
+	var offset int64 = 3600
+	result, err := parseUnixTime(dateTime string, offset int64) // result = seconds.
+
+Returns unix time(int64)
+*/
+func (mewc *ModelEventsWithConfig) parseUnixTime(dateTimeStr string, offset int64) (int64, error) {
+	formats := mewc.Config.DateTimeFormats
 
 	var t time.Time
 	var err error
@@ -38,7 +56,7 @@ func (*ModelEvents) parseAndPrintUnixTime(dateTimeStr string, offset int64) (int
 	}
 
 	if err != nil {
-		fmt.Printf("time parsing error: %v\n", err)
+		log.Printf("time parsing error: %v\n", err)
 		return 0, errors.New("error: parsing time")
 	}
 
@@ -46,17 +64,31 @@ func (*ModelEvents) parseAndPrintUnixTime(dateTimeStr string, offset int64) (int
 	return unixTime, nil
 }
 
-func (model *ModelEvents) parseSeconds(input string) (int, error) {
+/*
+Gets the seconds from the string that contains the time value.
+
+Supported time units: s - seconds, m - minutes, h - hourses, d - days.
+
+Example:
+
+	var input string = "1h"
+	result, err := parseSeconds(input) // result contains 3600 seconds
+*/
+func (*ModelEventsWithConfig) parseSeconds(input string) (int, error) {
 	var seconds int
 
-	if strings.Contains(input, "M") {
-		minutes, _ := strconv.Atoi(strings.TrimSuffix(input, "M"))
+	var inputLowerCase string = strings.ToLower(input)
+	if strings.Contains(inputLowerCase, "d") {
+		days, _ := strconv.Atoi(strings.TrimSuffix(inputLowerCase, "d"))
+		seconds += days * 86400
+	} else if strings.Contains(inputLowerCase, "m") {
+		minutes, _ := strconv.Atoi(strings.TrimSuffix(inputLowerCase, "m"))
 		seconds += minutes * 60
-	} else if strings.Contains(input, "H") {
-		hours, _ := strconv.Atoi(strings.TrimSuffix(input, "H"))
+	} else if strings.Contains(inputLowerCase, "h") {
+		hours, _ := strconv.Atoi(strings.TrimSuffix(inputLowerCase, "h"))
 		seconds += hours * 3600
-	} else if strings.Contains(input, "S") {
-		sec, _ := strconv.Atoi(strings.TrimSuffix(input, "S"))
+	} else if strings.Contains(inputLowerCase, "s") {
+		sec, _ := strconv.Atoi(strings.TrimSuffix(inputLowerCase, "s"))
 		seconds += sec
 	} else {
 		parts := strings.Split(input, ":")
@@ -73,29 +105,65 @@ func (model *ModelEvents) parseSeconds(input string) (int, error) {
 	return seconds, nil
 }
 
-func (model *ModelEvents) Extract(
+func (mewc *ModelEventsWithConfig) SetId(value int64) error {
+	mewc.ModelEvents.Id = value
+	return nil
+}
+
+func (mewc *ModelEventsWithConfig) SetUserId(value int64) error {
+	mewc.ModelEvents.UserId = value
+	return nil
+}
+
+func (mewc *ModelEventsWithConfig) SetEventName(value string) error {
+	if  len(strings.ReplaceAll(value, " ", "")) < 1 || len(value) > eventNameLength {
+		return fmt.Errorf("%s %d characters, length: %d", errorscustom.MaximumLengthEventName, eventNameLength, len(value))
+	}
+	mewc.ModelEvents.EventName = value
+	return nil
+}
+
+func (mewc *ModelEventsWithConfig) SetStartTime(startTime string, offset int64) error {
+	timeParse, timeParseError := mewc.parseUnixTime(startTime, offset)
+
+	if timeParseError != nil {
+		return timeParseError
+	}
+	mewc.ModelEvents.StartTime = timeParse
+	return nil
+}
+
+func (mewc *ModelEventsWithConfig) SetNotifyFor(startTime int64, notifyFor string) error {
+	notifyForParse, notifyForParseError := mewc.parseSeconds(notifyFor)
+
+	if notifyForParseError != nil {
+		return notifyForParseError
+	} else if int64(notifyForParse)+time.Now().Unix() > startTime {
+		log.Println(int64(notifyForParse)+time.Now().Unix(), startTime)
+		return errors.New(errorscustom.IncorrectNotificationTime)
+	}
+	mewc.ModelEvents.NotifyFor = notifyForParse
+	return nil
+}
+
+func (mewc *ModelEventsWithConfig) Extract(
 	notifyFor string,
 	startTime string,
 	offset int64,
 	eventName string,
 	userId int64,
 ) error {
-	timeParse, timeParseError := model.parseAndPrintUnixTime(startTime, offset)
-	notifyForParse, notifyForParseError := model.parseSeconds(notifyFor)
-
-	if timeParseError != nil {
-		return timeParseError
-	} else if notifyForParseError != nil {
-		return notifyForParseError
-	} else if int64(notifyForParse)+time.Now().Unix() > timeParse {
-		return errors.New(errorscustom.IncorrectNotificationTime)
-	} else if len(eventName) > 64 {
-		return fmt.Errorf("%s 64 characters", errorscustom.MaximumLengthEventName)
+	if err := mewc.SetUserId(userId); err != nil {
+		return err
 	}
-
-	model.UserId = userId
-	model.EventName = eventName
-	model.NotifyFor = notifyForParse
-	model.StartTime = timeParse
+	if err := mewc.SetEventName(eventName); err != nil {
+		return err
+	}
+	if err := mewc.SetStartTime(startTime, offset); err != nil {
+		return err
+	}
+	if err := mewc.SetNotifyFor(mewc.ModelEvents.StartTime, notifyFor); err != nil {
+		return err
+	}
 	return nil
 }

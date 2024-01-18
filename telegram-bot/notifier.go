@@ -11,6 +11,66 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+func (*TelegramBot) buildMessage(event *models.ModelEvents) string {
+
+	minutesBefore := event.NotifyFor
+	beforeText := "until the event"
+	if time.Now().Unix() > event.StartTime-int64(event.NotifyFor) {
+		event.NotifyFor = 0
+		beforeText = "the event has started"
+	}
+	if event.NotifyFor < 60 {
+		return fmt.Sprintf(
+			"🔊: %d seconds %s\n📝: %s\n⏰: %s",
+			event.NotifyFor,
+			beforeText,
+			event.EventName,
+			time.Unix(event.StartTime, 0).Format("2006-01-02 15:04:05"),
+		)
+	} else if event.NotifyFor < 3600 {
+		return fmt.Sprintf(
+			"🔊: %d minutes %s\n📝: %s\n⏰: %s",
+			event.NotifyFor/60,
+			beforeText,
+			event.EventName,
+			time.Unix(event.StartTime, 0).Format("2006-01-02 15:04:05"),
+		)
+	} else if event.NotifyFor < 86400 {
+		hoursBefore := event.NotifyFor / 3600
+		minutesBefore = (event.NotifyFor % 3600) / 60
+		return fmt.Sprintf(
+			"🔊: %d hours and %d minutes %s\n📝: %s\n⏰: %s",
+			hoursBefore,
+			minutesBefore,
+			beforeText,
+			event.EventName,
+			time.Unix(event.StartTime, 0).Format("2006-01-02 15:04:05"),
+		)
+	} else if event.NotifyFor < 2_592_000 {
+		days := event.NotifyFor / 86400
+		weeks := days / 7
+		days = days % 7
+		return fmt.Sprintf(
+			"🔊: %d weeks and %d days %s\n📝: %s\n⏰: %s",
+			weeks, days,
+			beforeText,
+			event.EventName,
+			time.Unix(event.StartTime, 0).Format("2006-01-02 15:04:05"),
+		)
+	} else {
+		years := event.NotifyFor / 31104000
+		weeks := (event.NotifyFor % 31104000) / 604800
+		days := ((event.NotifyFor % 31104000) % 604800) / 86400
+		return fmt.Sprintf(
+			"🔊: %d years, %d weeks and %d days %s\n📝: %s\n⏰: %s",
+			years, weeks, days,
+			beforeText,
+			event.EventName,
+			time.Unix(event.StartTime, 0).Format("2006-01-02 15:04:05"),
+		)
+	}
+}
+
 func (tgBot *TelegramBot) Notifier() {
 	handler := &handlers.Handler{
 		Config:     tgBot.Config,
@@ -44,12 +104,7 @@ func (tgBot *TelegramBot) Notifier() {
 				wg.Add(1)
 				go func(event *models.ModelEvents) {
 					defer wg.Done()
-					msg := tgbotapi.NewMessage(event.UserId, fmt.Sprintf(
-						"📝: %s\n⏰: %s\nMinutes before the event: %d",
-						event.EventName,
-						time.Unix(event.StartTime, 0).Format("2006-01-02 15:04:05"),
-						event.NotifyFor/60,
-					))
+					msg := tgbotapi.NewMessage(event.UserId, tgBot.buildMessage(event))
 					tgBot.Bot.Send(msg)
 				}(j)
 			}
@@ -60,14 +115,18 @@ func (tgBot *TelegramBot) Notifier() {
 				wg.Add(1)
 				go func(event *models.ModelEvents) {
 					defer wg.Done()
-					msg := tgbotapi.NewMessage(event.UserId, fmt.Sprintf(
-						"%d minutes until this event\n📝: %s\n⏰: %s\n",
-						event.NotifyFor/60,
-						event.EventName,
-						time.Unix(event.StartTime, 0).Format("2006-01-02 15:04:05"),
-					))
+					msg := tgbotapi.NewMessage(event.UserId, tgBot.buildMessage(event))
 					tgBot.Bot.Send(msg)
 				}(j)
+			}
+		}()
+		
+		wg.Add(1)
+		go func(){
+			defer wg.Done()
+			err := handler.AutoDeleteEvent()
+			if err != nil{
+				log.Println(err)
 			}
 		}()
 

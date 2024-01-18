@@ -8,11 +8,12 @@ import (
 )
 
 type Config struct {
-	TgBotDebug            bool   `json:"tgBotDebug"`
-	RegistrationAccess    bool   `json:"registrationAccess"`
-	MaxCountEventsPerUser int    `json:"maxCountEventsPerUser"`
-	TgBotApiToken         string `json:"tgBotApiToken"`
-	PathToDataBase        string `json:"pathToDataBase"`
+	TgBotDebug            bool     `json:"tgBotDebug"`
+	RegistrationAccess    bool     `json:"registrationAccess"`
+	MaxCountEventsPerUser int      `json:"maxCountEventsPerUser"`
+	TgBotApiToken         string   `json:"tgBotApiToken"`
+	PathToDataBase        string   `json:"pathToDataBase"`
+	DateTimeFormats       []string `json:"dateTimeFormats"`
 }
 
 func (conf *Config) Unmarshal(path_to_config string) error {
@@ -23,7 +24,11 @@ func (conf *Config) Unmarshal(path_to_config string) error {
 		return err
 	}
 	defer file.Close()
-	byteValue, _ := io.ReadAll(file)
+	byteValue, readErr := io.ReadAll(file)
+
+	if readErr != nil{
+		panic(readErr)
+	}
 
 	json.Unmarshal(byteValue, &conf)
 	return nil
