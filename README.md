@@ -56,5 +56,5 @@ tar xvzf reminders_tg_bot_linux_x64.tar.gz
 Expand-Archive -Path C:\RemindersTgBot\reminders_tg_bot_windows_x64.zip -DestinationPath C:\RemindersTgBot
 ```
 
-### You need to customize the `config.json` configuration file. you need to insert the api-token for the telegram bot into the `tgBotApiToken` field. [More about config.json](#File config.json)
+### You need to customize the `config.json` configuration file. you need to insert the api-token for the telegram bot into the `tgBotApiToken` field. [More about config.json](#file-configjson)
 ### Then you need to add commands to the bot, `menu - <description>` and `get - <description>`
