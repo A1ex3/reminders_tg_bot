@@ -1,14 +1,17 @@
 package main
 
 import (
+	"flag"
 	tgbot "reminders_tg_bot/telegram-bot"
 	"time"
 )
 
 func main() {
+	var config_path string
+	flag.StringVar(&config_path, "config_path", "config.json", "Path to config.json")
 
 	tgBot := &tgbot.TelegramBot{}
-	tgBot.Create("config.json")
+	tgBot.Create(config_path)
 	go func() {
 		for {
 			tgBot.Notifier()

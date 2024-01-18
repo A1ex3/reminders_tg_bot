@@ -5,4 +5,5 @@ makedb:
 	cat $(PATH-TO-FILE-SQL) | sqlite3 $(PATH-TO-FILE-DATABASE)
 
 build:
-	go build . 
+	go mod tidy
+	go build .
