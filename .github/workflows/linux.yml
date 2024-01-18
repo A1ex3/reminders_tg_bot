@@ -1,0 +1,55 @@
+name: Linux.
+
+on:
+    push:
+      branches:
+        - '*'
+    pull_request:
+      branches:
+        - '*'
+
+jobs:
+    create_release:
+        name: Create_Release
+        runs-on: ubuntu-latest
+    
+        steps:
+          - uses: actions/checkout@v4
+    
+          - name: Setup Go 1.21.x
+            uses: actions/setup-go@v4
+            with:
+                go-version: '1.21.x'
+            
+          - name: Installing sqlite3
+            run: apt install sqlite3 
+
+          - name: Build App
+            run: make build
+
+          - name: Set up Git
+            run: |
+              git config user.name "A1ex3"
+              git config user.email "None@example.com"
+            env:
+              GITHUB_TOKEN: ${{ secrets.ACTIONS }}
+
+          - name: Create directory
+            run: |
+              mkdir reminders_tg_bot_linux_x64
+              cp -r database.db reminders_tg_bot_linux_x64/
+              cp -r config.json reminders_tg_bot_linux_x64/
+              cp -r LICENSE reminders_tg_bot_linux_x64/
+              cp -r README.md reminders_tg_bot_linux_x64/
+              cp -r reminders_tg_bot reminders_tg_bot_linux_x64/
+              tar -czvf reminders_tg_bot_linux_x64.tar.gz reminders_tg_bot_linux_x64
+            working-directory: ${{ github.workspace }}
+
+          - name: Create GitHub Release
+            id: create_release
+            uses: softprops/action-gh-release@v1
+            with:
+              files: reminders_tg_bot_linux_x64.tar.gz
+              tag_name: latest
+            env:
+              GITHUB_TOKEN: ${{ secrets.ACTIONS }}
