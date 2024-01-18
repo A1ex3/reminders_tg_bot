@@ -25,6 +25,9 @@ jobs:
             run: | 
               sudo apt-get update
               sudo apt-get install --yes sqlite3 
+          
+          - name: Creating a database file.
+            run: make makedb
 
           - name: Build App
             run: make build
