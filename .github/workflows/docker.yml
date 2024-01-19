@@ -25,19 +25,19 @@ jobs:
                 password: ${{ secrets.ACTIONS }}
             
             - name: Repository to lower case
-              run: echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]' 
+              run: echo "variable=${{ github.repository }}" | tr '[:upper:]' '[:lower:]' 
               id: repositoryLC
 
             - name: Extract metadata (tags, labels) for Docker
               id: meta
               uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
               with:
-                images: ${{ steps.repositoryLC.outputs.labels }}
+                images: ${{ steps.repositoryLC.outputs.variable }}
 
             - name: Build and push Docker image
               uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
               with:
                 context: .
                 push: true
-                tags: ghcr.io/${{ steps.repositoryLC.outputs.labels }}:latest
+                tags: ghcr.io/${{ steps.repositoryLC.outputs.variable }}:latest
                 labels: ${{ steps.meta.outputs.labels }}
