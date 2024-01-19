@@ -32,10 +32,10 @@ func (tgBot *TelegramBot) Create(pathToConfig string) {
 	var evnTgBotApiTokenos string = os.Getenv("TGBOTAPITOKEN")
 	var bot *tgbotapi.BotAPI
 	var err error
-	if len(evnTgBotApiTokenos) != 0{
-		bot, err = tgbotapi.NewBotAPI(evnTgBotApiTokenos)
-	}else{
+	if len(tgBot.Config.TgBotApiToken) != 0{
 		bot, err = tgbotapi.NewBotAPI(tgBot.Config.TgBotApiToken)
+	}else{
+		bot, err = tgbotapi.NewBotAPI(evnTgBotApiTokenos)
 	}
 	if err != nil {
 		panic(err)
