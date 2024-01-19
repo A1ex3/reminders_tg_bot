@@ -1,6 +1,7 @@
 package telegrambot
 
 import (
+	"os"
 	config "reminders_tg_bot/config"
 	"reminders_tg_bot/database"
 
@@ -28,7 +29,14 @@ func (tgBot *TelegramBot) Create(pathToConfig string) {
 	tgBot.Config = config
 	tgBot.Repository = repo
 
-	bot, err := tgbotapi.NewBotAPI(tgBot.Config.TgBotApiToken)
+	var evnTgBotApiTokenos string = os.Getenv("TGBOTAPITOKEN")
+	var bot *tgbotapi.BotAPI
+	var err error
+	if len(evnTgBotApiTokenos) != 0{
+		bot, err = tgbotapi.NewBotAPI(evnTgBotApiTokenos)
+	}else{
+		bot, err = tgbotapi.NewBotAPI(tgBot.Config.TgBotApiToken)
+	}
 	if err != nil {
 		panic(err)
 	}

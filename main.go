@@ -9,6 +9,7 @@ import (
 func main() {
 	var config_path string
 	flag.StringVar(&config_path, "config_path", "config.json", "Path to config.json")
+	flag.Parse()
 
 	tgBot := &tgbot.TelegramBot{}
 	tgBot.Create(config_path)
