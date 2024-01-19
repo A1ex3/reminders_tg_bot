@@ -10,7 +10,7 @@ on:
 
 jobs:
     docker:
-        name: Create_Release
+        name: Build Docker Image
         runs-on: ubuntu-latest
     
         steps:
