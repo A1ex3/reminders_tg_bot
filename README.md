@@ -56,5 +56,33 @@ tar xvzf reminders_tg_bot_linux_x64.tar.gz
 Expand-Archive -Path C:\RemindersTgBot\reminders_tg_bot_windows_x64.zip -DestinationPath C:\RemindersTgBot
 ```
 
-### You need to customize the `config.json` configuration file. you need to insert the api-token for the telegram bot into the `tgBotApiToken` field. [More about config.json](#file-configjson)
+### You need to customize the `config.json` configuration file. you need to insert the api-token for the telegram bot into the `tgBotApiToken` field. [More about config.json](#file-configjson).
+### or create an environment variable
+```bash
+export TGBOTAPITOKEN=token_value
+```
 ### Then you need to add commands to the bot, `menu - <description>` and `get - <description>`
+### Run App
+- linux
+```bash
+chmod +x reminders_tg_bot
+```
+```bash
+./reminders_tg_bot -config_path="config.json"
+```
+- windows powershell
+```
+.\reminders_tg_bot.exe -config_path="config.json"
+```
+
+## Docker Container Launch.
+### First you need to create a `config.json` file, where it is in the place where it will be stored is usually `/etc/reminders_tg_bot/config.json`
+### Next, you need to paste the data into `config.json` from this [file](https://github.com/A1ex3/reminders_tg_bot/blob/main/config.json) file and fill it in.
+- If the token is written to `config.json`
+```bash
+docker run -p 443:443 -p 80:80 --name reminders_tg_bot -v /etc/reminders_tg_bot/config.json:/etc/reminders_tg_bot/config.json -d ghcr.io/a1ex3/reminders_tg_bot:latest
+```
+- If the token is written to the environment variable `TGBOTAPITOKEN`
+```bash
+docker run -p 443:443 -p 80:80 --name reminders_tg_bot -e TGBOTAPITOKEN=tgBotApiToken -v /etc/reminders_tg_bot/config.json:/etc/reminders_tg_bot/config.json -d ghcr.io/a1ex3/reminders_tg_bot:latest
+```
