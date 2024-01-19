@@ -25,7 +25,7 @@ jobs:
                 password: ${{ secrets.ACTIONS }}
             
             - name: Repository to lower case
-              run: echo "variable=${{ github.repository }}" >> "$GITHUB_OUTPUT" | tr '[:upper:]' '[:lower:]' 
+              run: echo "variable=${{ github.repository }}" | tr '[:upper:]' '[:lower:] >> "$GITHUB_OUTPUT"' 
               id: repositoryLC
 
             - name: Extract metadata (tags, labels) for Docker
