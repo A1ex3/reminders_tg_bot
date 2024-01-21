@@ -27,9 +27,11 @@ func (tgBot *TelegramBot) MessageHandler() {
 	const (
 		SelectWhichFieldEdit string = "Select which field to edit"
 		EnterNewStartTime    string = "Enter a new start time"
+		EnterNewNotificationFor string = "Enter a new notification for"
 	)
 	var eventId string = ""
 	var state string = "" // A variable that is responsible for the state of the user's actions.
+	var startTime int64 = 0
 
 	modelEvent := &models.ModelEventsWithConfig{
 		Config:      tgBot.Config,
@@ -157,6 +159,40 @@ func (tgBot *TelegramBot) MessageHandler() {
 							)
 							tgBot.Bot.Send(msg)
 							state = ""
+						}
+					}
+				}
+			} else if state == EnterNewNotificationFor{
+				if handler.UserExists() {
+					modelEvent.ModelEvents.UserId = update.Message.From.ID
+					log.Println(startTime, update.Message.Text)
+					err := modelEvent.SetNotifyFor(startTime, update.Message.Text)
+					if err != nil {
+						msg := tgbotapi.NewMessage(
+							update.Message.From.ID,
+							fmt.Sprintf(
+								"⚠️%s\nAllowed formats:\ns - seconds;\nm - minutes;\nh - hours;\nd - days;\nh:m:s;\nExamples:\n2h - will notify 2 hours before the event;",
+								err.Error(),
+							),
+						)
+						tgBot.Bot.Send(msg)
+					} else {
+						handler.ModelEvent = modelEvent.ModelEvents
+						eventIdTemp, _ := strconv.ParseInt(eventId, 10, 64)
+						handler.ModelEvent.Id = eventIdTemp
+						createEventErr := handler.UpdateEventNotfiyFor()
+
+						log.Println(handler.ModelEvent)
+						if createEventErr != nil {
+							msg := tgbotapi.NewMessage(update.Message.From.ID, createEventErr.Error())
+							tgBot.Bot.Send(msg)
+							state = ""
+							eventId = ""
+						} else {
+							msg := tgbotapi.NewMessage(update.Message.From.ID, "Event successfully updated")
+							tgBot.Bot.Send(msg)
+							state = ""
+							eventId = ""
 						}
 					}
 				}
@@ -315,6 +351,7 @@ func (tgBot *TelegramBot) MessageHandler() {
 					var tgButton tgbutton.ITgButton = &tgButtonInit
 					tgButton.Add(tgButton.Create("Edit name", "editEventName"))
 					tgButton.Add(tgButton.Create("Edit start time", "editEventStartTime"))
+					tgButton.Add(tgButton.Create("Edit notification in", "editEventNotificationFor"))
 					tgButton.Add(tgButton.Create("Back", fmt.Sprintf("EventId:%s", eventId)))
 					build := tgButton.Build()
 					msg := tgbotapi.NewEditMessageTextAndMarkup(
@@ -332,6 +369,14 @@ func (tgBot *TelegramBot) MessageHandler() {
 					)
 					tgBot.Bot.Send(msg)
 					state = EnterNewStartTime
+				} else if update.CallbackQuery.Data == "editEventNotificationFor"{
+					msg := tgbotapi.NewEditMessageText(
+						update.CallbackQuery.From.ID,
+						update.CallbackQuery.Message.MessageID,
+						EnterNewNotificationFor,
+					)
+					tgBot.Bot.Send(msg)
+					state = EnterNewNotificationFor
 				} else if update.CallbackQuery.Data == "editEventName" {
 					msg := tgbotapi.NewEditMessageText(
 						update.CallbackQuery.From.ID,
@@ -447,6 +492,7 @@ func (tgBot *TelegramBot) MessageHandler() {
 							build,
 						)
 						tgBot.Bot.Send(msg)
+						startTime = result[0].StartTime
 					}
 				}
 			}

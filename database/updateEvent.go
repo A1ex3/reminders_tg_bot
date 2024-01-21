@@ -70,3 +70,39 @@ func (repo *Repository) UpdateEventStartTime(
 		return nil
 	}
 }
+
+func (repo *Repository) UpdateEventNotifyFor(
+	userId int64,
+	notifyFor int,
+	eventId int64,
+) error {
+	ctx := context.Background()
+	resultCh := make(chan sql.Result)
+	errorCh := make(chan error)
+
+	go func() {
+		defer close(errorCh)
+		defer close(resultCh)
+
+		result, err := repo.SqLite.ExecContext(
+			ctx,
+			"UPDATE events SET notify_for = $1 WHERE id = $2 AND e_user_id = $3",
+			notifyFor,
+			eventId,
+			userId,
+		)
+		if err != nil {
+			errorCh <- err
+		} else {
+			resultCh <- result
+		}
+	}()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case err := <-errorCh:
+		return err
+	case <-resultCh:
+		return nil
+	}
+}
