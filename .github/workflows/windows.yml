@@ -36,13 +36,6 @@ jobs:
             - name: Build App
               run: make build
 
-            - name: Set up Git
-              run: |
-                git config user.name "A1ex3"
-                git config user.email "None@example.com"
-              env:
-                GITHUB_TOKEN: ${{ secrets.ACTIONS }}
-
             - name: Create directory
               run: |
                 mkdir reminders_tg_bot_windows_x64
